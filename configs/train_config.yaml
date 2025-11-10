@@ -1,0 +1,23 @@
+data:
+  root: "data/raw"
+  img_size: [128, 128, 128]
+  modalities: ["flair", "t1", "t1ce", "t2"]
+
+train:
+  batch_size: 2
+  epochs: 500
+  lr: 1e-4
+  weight_decay: 1e-5
+  dice_weight: 1.0
+  kl_weight: 0.5
+  mod_weight: 0.1
+  curriculum: true
+
+model:
+  embed_dim: 16
+  num_classes: 4
+
+paths:
+  log_dir: "logs"
+  ckpt_dir: "checkpoints"
+  vis_dir: "results/vis"

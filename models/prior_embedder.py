@@ -1,21 +1,15 @@
-import torch
+
 import torch.nn as nn
 
 class ClinicalPriorEmbedder(nn.Module):
-    def __init__(self, embed_dim: int = 16):
+    def __init__(self, embed_dim=16):
         super().__init__()
-        self.mask_proj = nn.Linear(4, embed_dim)        # missing_mask
-        self.mode_embed = nn.Embedding(4, embed_dim)    # 4种临床模式
-
-        def forward(self, missing_mask: torch.Tensor, mode_id: torch.Tensor):
-            """
-            Args:
-                missing_mask: [B, 4], float32, 1=存在, 0=缺失
-                mode_id: [B], long, 0~3
-            Returns:
-                prior_vec: [B, embed_dim]
-            """
-            mask_vec = self.mask_proj(missing_mask.float())  # [B,16]
-            mode_vec = self.mode_embed(mode_id)  # [B,16]
-            prior_vec = mask_vec + mode_vec  # 融合
-            return prior_vec
+        self.missing_emb = nn.Embedding(16, embed_dim // 2)
+        self.mode_emb = nn.Embedding(5, embed_dim // 2)
+        self.proj = nn.Linear(embed_dim, embed_dim)
+    def forward(self, missing_mask, mode_id):
+        miss_idx = (missing_mask[:,0]*8 + missing_mask[:,1]*4 + missing_mask[:,2]*2 + missing_mask[:,3]*1).long()
+        miss_emb = self.missing_emb(miss_idx)
+        mode_emb = self.mode_emb(mode_id)
+        emb = torch.cat([miss_emb, mode_emb], dim=-1)
+        return self.proj(emb)
